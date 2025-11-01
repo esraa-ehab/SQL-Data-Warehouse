@@ -1,4 +1,5 @@
 USE master; 
+GO
 
 IF EXISTS(SELECT 1 from sys.databases WHERE name = 'DataWareHouse')
 BEGIN
@@ -9,9 +10,12 @@ END
 CREATE DATABASE DataWareHouse;
 
 USE DataWareHouse; 
+GO
 
 CREATE SCHEMA bronze;
 GO
+
 CREATE SCHEMA silver;
 GO
+
 CREATE SCHEMA gold;
