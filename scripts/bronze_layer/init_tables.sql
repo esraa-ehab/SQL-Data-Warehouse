@@ -66,4 +66,3 @@ CREATE TABLE bronze.erp_px_cat (
     , SUBCAT NVARCHAR(50)
     , MAINTENANCE VARCHAR(50)
     );
-
