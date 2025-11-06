@@ -1,6 +1,6 @@
 CREATE OR ALTER PROCEDURE bronze.load_bronze AS
 BEGIN
-    DECLARE @start DATETIME, @end DATETIME, @durationMs INT, @batch_start DATETIME;
+    DECLARE @start DATETIME2, @end DATETIME2, @durationMs INT, @batch_start DATETIME2;
     BEGIN TRY
 
         PRINT '=================================================='
@@ -112,3 +112,5 @@ BEGIN
         PRINT '-----------------------------------------';
     END CATCH
 END;
+
+EXEC bronze.load_bronze
