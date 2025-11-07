@@ -1,3 +1,4 @@
+TRUNCATE TABLE silver.crm_product_info
 INSERT INTO silver.crm_product_info(
     prd_id 
     , cat_id 

@@ -1,3 +1,4 @@
+TRUNCATE TABLE silver.crm_customer_info;
 INSERT INTO silver.crm_customer_info (
     cst_id
     , cst_key
@@ -30,4 +31,4 @@ FROM (
     FROM bronze.crm_customer_info
     WHERE cst_id IS NOT NULL
     ) t
-WHERE last_date_flag = 1
+WHERE last_date_flag = 1;

@@ -48,9 +48,9 @@ CREATE TABLE silver.crm_sales_info (
 if OBJECT_ID('silver.erp_customer', 'U') is not NULL
     DROP TABLE silver.erp_customer
 CREATE TABLE silver.erp_customer (
-    CID NVARCHAR(50)
-    , BDATE DATE
-    , GEN NVARCHAR(50)
+    cid NVARCHAR(50)
+    , bdate DATE
+    , gen NVARCHAR(50)
     , dwh_create_date DATETIME2 DEFAULT GETDATE()
     );
 
@@ -58,8 +58,8 @@ CREATE TABLE silver.erp_customer (
 if OBJECT_ID('silver.erp_location', 'U') is not NULL
     DROP TABLE silver.erp_location
 CREATE TABLE silver.erp_location (
-    CID NVARCHAR(50)
-    , CNTRY NVARCHAR(50)
+    cid NVARCHAR(50)
+    , cntry NVARCHAR(50)
     , dwh_create_date DATETIME2 DEFAULT GETDATE()
     );
 
@@ -67,9 +67,9 @@ CREATE TABLE silver.erp_location (
 if OBJECT_ID('silver.erp_px_cat', 'U') is not NULL
     DROP TABLE silver.erp_px_cat
 CREATE TABLE silver.erp_px_cat (
-    ID NVARCHAR(50)
-    , CAT NVARCHAR(50)
-    , SUBCAT NVARCHAR(50)
-    , MAINTENANCE VARCHAR(50)
+    id NVARCHAR(50)
+    , cat NVARCHAR(50)
+    , subcat NVARCHAR(50)
+    , maintenance VARCHAR(50)
     , dwh_create_date DATETIME2 DEFAULT GETDATE()
     );
