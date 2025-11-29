@@ -8,7 +8,7 @@ WITH base_query AS (
         , s.quantity
         , c.customer_key
         , customer_number
-        , CONCAT(c.frist_name, ' ', c.last_name) as customer_name
+        , CONCAT(c.first_name, ' ', c.last_name) as customer_name
         , DATEDIFF(YEAR, c.birthdate, GETDATE()) as age
     FROM gold.sales_fact s
     LEFT JOIN gold.customer_dim c on s.customer_key = c.customer_key
