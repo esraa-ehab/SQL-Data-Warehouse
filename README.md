@@ -1,84 +1,71 @@
-# SQL Data Warehouse - Project Documentation
 
-## Overview
+# SQL End to End Data Warehouse and Data Analytics (ETL pipeline, Data Modeling, Analytics Reports)
 
-This repository contains a small SQL Data Warehouse project organized into Bronze, Silver and Gold layers. The scripts build the database, create schemas/tables, load CSV datasets into the bronze layer, apply transformations to produce silver tables, and create business-ready views in the gold layer.
+This project demonstrates how real-world business data can be shaped into reliable, repeatable analytics. It is a compact, working example of an end-to-end data pipeline.
 
-This README explains repository structure, the purpose of each script, required prerequisites, and a step-by-step guide to run the full build locally or on a server.
-
----
-
-## Overview diagram
 <img src="docs/data_flow.png" width="700 height= 500"/> <br>
 - *Figure: high-level data flow showing sources → bronze ingestion → silver transformations → gold views/analytics.*
 
-## Layer responsibilities
+What to expect here:
+- A curated set of SQL scripts that take raw CSV extracts and turn them into business-ready datasets.
+- Exploratory analyses that show how the data was interrogated to define metrics and model choices.
+- Clear examples of common data-engineering concerns: handling messy input, deduplication, and producing stable analytic views.
 
-- Bronze: raw ingestion & staging (CSV → permissive tables)
-- Silver: cleansing, normalization, deduplication, and intermediate enrichment
-- Gold: business-facing dimensions and fact view(s)
-<img src="docs/data_layers.png" width="700 height= 500"/> <br>
-*Figure: responsibilities and transformations performed at each layer.*
+Highlights
+- Outcome-oriented: final `gold` views (dimensions and facts) are designed for analysts and product managers to answer questions like customer lifetime, product trends, and sales performance.
+- Reproducible steps: a simple orchestrator (`pipeline_scripts/master_script.sql`) runs the core pipeline end-to-end.
+- Analysis-first: folders `analysis_reports/` and `data_analysis/` contain the queries and notes that guided metric definitions.
 
-## Project layout (important files)
+Try the demo (quick)
+- Open `pipeline_scripts/master_script.sql` to see the pipeline order. For a quick inspection, browse `gold_layer/` to view the final SQL that defines the analytic datasets.
+- If you want to run the pipeline on your machine or a demo server, the easiest path is to run `pipeline_scripts/master_script.sql` using your SQL client - the scripts are implemented for a SQL Server-like environment.
 
-- `datasets/` - CSV inputs (CRM and ERP sample files).
-- `scripts/init_database.sql` - create database and schemas (`bronze`, `silver`, `gold`).
-- `scripts/bronze_layer/init_tables.sql` - bronze table DDL.
-- `scripts/bronze_layer/load_data_from_csv.sql` - `bronze.load_bronze` procedure that bulk-loads CSVs (prints timings and uses TRY/CATCH).
-- `scripts/silver_layer/init_tables.sql` - silver DDL (adds `dwh_create_date`).
-- `scripts/silver_layer/run_all_transformations.sql` - orchestrates transformations in `crm_explore_transform/` and `erp_explore_transform/`.
-- `scripts/gold_layer/create_gold_views.sql` - orchestrates creation of the analytical views.
+What I’d like viewers to notice
+- The thought process: review the EDA in `data_analysis/` to see how edge cases and key metrics were identified.
+- The transformation decisions: look at `silver_layer/` to see how raw data is normalized and deduplicated.
+- The consumer view: `gold_layer/` shows how the data is shaped to be immediately useful for reporting.
 
-## How diagrams map to code
 
-- Data integration/enrichment (joins between CRM and ERP that produce the customer/product enrichments) - see: `docs/data_integration.png` and the silver/gold join logic.
+## Key Concepts
 
-  <img src="docs/data_integration.png" width="700 height= 500"/> <br>
-  *Figure: how CRM and ERP records are matched and enriched in silver/gold.*
-
-- Logical data model (entities and relationships) - shown in `docs/data_model.png`; this maps directly to the gold views (customer_dim, new_product_dim/old_product_dim, sales_fact).
-  <img src="docs/data_model.png" width="700 height= 500"/> <br>
-  *Figure: simplified ER view of customer, product and sales relationships (used by gold views).* 
+- **Bronze**: raw ingestion and staging. CSVs are loaded with permissive DDL to avoid failures from dirty input.
+- **Silver**: cleansing, normalization, deduplication, and intermediate enrichment. Silver produces production-quality tables ready for analytics.
+- **Gold**: business-facing views (dimensions and facts) designed for reporting and BI.
 
 ---
 
-## What I implemented - code level
+## Repository Structure (top-level)
+- `pipeline_scripts/` : orchestrating scripts and SQL modules used to create the database, load data, run transformations, and create gold views.
+  - `init_database.sql` : create the target database and base schemas used by the pipeline.
+  - `master_script.sql` : top-level orchestrator that runs the bronze, silver and gold scripts in order.
+  - `bronze_layer/` : DDL and ingestion logic for raw CSV loads (`init_tables.sql`, `load_data_from_csv.sql`).
+  - `silver_layer/` : DDL and transformation orchestration (`init_tables.sql`, `run_all_transformations.sql`) and subfolders for CRM/ERP-specific transformations.
+  - `gold_layer/` : scripts to create analytical views and final dimensions/facts (`create_gold_views.sql`, `customer_dimension.sql`, `sales_fact.sql`, `current_product_dimension.sql`, `old_product_dimension.sql`).
+- `datasets/` : sample CSV files used by the pipeline. Contains `source_crm/` and `source_erp/` subfolders.
+- `analysis_reports/` and `data_analysis/` : exploratory SQL and reports used during analysis and validation.
+- `docs/` : diagrams and additional documentation (data flow and data model images).
 
-1) Database & schema setup
-	- `scripts/init_database.sql` creates the `DataWareHouse` DB and three schemas to separate stages.
+---
 
-2) Bronze (ingestion)
-	- Bronze tables mirror raw CSVs and are intentionally permissive (NVARCHAR / INTEGER) to avoid failures when loading dirty data.
-	- `bronze.load_bronze` (in `load_data_from_csv.sql`) uses `BULK INSERT` per file and prints load timings; it TRUNCATEs target tables to keep demo runs idempotent.
+## Transformations Summary
 
-3) Silver (transformations)
-	- Deduplication: CRM customers use ROW_NUMBER() OVER (PARTITION BY cst_id ORDER BY cst_create_date DESC) to keep the last record.
-	- Product parsing: `prd_key` parsing (SUBSTRING/REPLACE) to extract `cat_id` and normalized `prd_key`.
-	- Effective dating: LEAD(prd_start_dt) OVER (...) - 1 to compute `prd_end_dt` for product versioning.
-	- Sales normalization: sanity checks for date fields, price, quantity, sales consistency (recalculate where inconsistent).
+- Deduplication: CRM records are deduplicated using window functions (e.g., `ROW_NUMBER() OVER (PARTITION BY <id> ORDER BY <date> DESC)`) to keep the latest record.
+- Product parsing and effective dating: product keys are parsed to extract category identifiers, and `LEAD()`/`LAG()` are used to compute effective start/end dates for versioned product records.
+- Sales normalization: price, quantity and date fields are validated and corrected when inconsistent or out-of-range.
+- ERP-specific cleanup: custom cleaning for ERP source files (prefix removal, consistent casing, nulling impossible dates).
+- Gold views: dimensions (`customer_dim`, `product_dim`) and `sales_fact` are exposed as `SELECT`able views. Views intentionally use outer joins to preserve transaction rows even when enrichment is missing.
 
-4) ERP-specific cleansing
-	- Removes 'NAS' prefix, normalizes gender, nulls future birthdates in `customer_az_transform.sql`.
+---
 
-5) Gold (business views)
-	- Gold defines views: `gold.customer_dim`, `gold.new_product_dim`, `gold.old_product_dim`, `gold.sales_fact`.
-	- Views use LEFT JOINs so transactional rows are preserved even when enrichments are missing.
-	- Synthetic surrogate keys are produced via ROW_NUMBER() for reporting/demos (replace with persisted surrogates for production).
+## Data Quality & Assumptions
 
-## Data-quality & defensive choices
+- CSVs are expected in `datasets/` with header rows. The loader scripts may assume a specific file path — update paths in `load_data_from_csv.sql` for your environment.
+- Scripts currently assume a SQL Server-compatible dialect (T-SQL): `BULK INSERT`, `TRY/CATCH`, `sqlcmd` style includes. Adjust for other RDBMS if needed.
+- Bronze uses permissive column types to maximize ingestion success; silver performs type enforcement and validation.
 
-- Bronze is deliberately permissive to ensure ingestion completes.
-- Silver includes defensive casts, length checks, and CASE mapping to standardize categories and genders.
-- Silver adds `dwh_create_date` to capture ingestion/transformation time.
-- Silver transformations recalc inconsistent numeric fields (sales/price) to enforce internal consistency.
+---
 
-## Assumptions
+## Prerequisites
 
-- CSVs are comma-separated with a header row (FIRSTROW=2 in BULK INSERT).
-- Sales date fields follow YYYYMMDD-like format when present; invalid values are set to NULL.
-- Product key format is consistent enough for SUBSTRING-based parsing.
-
-## Short run notes
-
-- `master_script.sql` includes the bronze load, silver transforms and gold view creation (via `:r` includes). Use `sqlcmd` or SSMS to execute these scripts. See earlier README history for example `sqlcmd` commands.
+- A SQL Server instance (local or remote) compatible with the T-SQL features used here.
+- `sqlcmd` (or a GUI client such as SSMS / Azure Data Studio) to execute the scripts.
