@@ -43,13 +43,13 @@ ORDER BY total_revenue DESC;
 
 -- total money spent by each customer
 SELECT d.customer_key
-    , d.frist_name
+    , d.first_name
     , d.last_name
     , SUM(f.sales) AS total_revenue
 FROM gold.sales_fact f
 LEFT JOIN gold.customer_dim d ON f.customer_key = d.customer_key
 GROUP BY d.customer_key
-    , d.frist_name
+    , d.first_name
     , d.last_name
 ORDER BY total_revenue DESC;
 

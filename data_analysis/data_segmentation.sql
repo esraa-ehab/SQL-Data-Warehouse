@@ -22,14 +22,14 @@ ORDER BY No_of_products;
 WITH customers_spendings
 AS (
     SELECT c.customer_key
-        , CONCAT (frist_name, ' ', last_name) AS 'name'
+        , CONCAT (first_name, ' ', last_name) AS 'name'
         , MIN(s.order_date) AS oldest_order_date
         , MAX(s.order_date) AS latest_order_date
         , SUM(sales) AS total_spendings
     FROM gold.sales_fact s
     LEFT JOIN gold.customer_dim c
         ON s.customer_key = c.customer_key
-    GROUP BY c.customer_key, c.frist_name, c.last_name
+    GROUP BY c.customer_key, c.first_name, c.last_name
 ), customers_spending_class AS (
         --spendings: max=15998  min=2 
         SELECT customer_key
